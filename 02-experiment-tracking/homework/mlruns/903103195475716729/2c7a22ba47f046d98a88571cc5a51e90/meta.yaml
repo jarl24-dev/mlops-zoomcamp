@@ -1,0 +1,15 @@
+artifact_uri: file:///workspaces/mlops-zoomcamp/02-experiment-tracking/homework/mlruns/903103195475716729/2c7a22ba47f046d98a88571cc5a51e90/artifacts
+end_time: 1748298076050
+entry_point_name: ''
+experiment_id: '903103195475716729'
+lifecycle_stage: active
+run_id: 2c7a22ba47f046d98a88571cc5a51e90
+run_name: valuable-sow-141
+run_uuid: 2c7a22ba47f046d98a88571cc5a51e90
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748298054008
+status: 3
+tags: []
+user_id: codespace
