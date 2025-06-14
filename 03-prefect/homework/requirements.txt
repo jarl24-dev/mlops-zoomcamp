@@ -1,0 +1,13 @@
+mlflow==2.3.1
+prefect==3.4.5
+jupyter
+scikit-learn
+pandas
+seaborn
+hyperopt
+xgboost
+fastparquet
+boto3
+black
+prefect-aws
+orjson
