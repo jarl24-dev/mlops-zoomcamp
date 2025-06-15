@@ -39,7 +39,7 @@ def read_dataframe(year, month):
 def create_X(df, dv=None):
     categorical = ['PULocationID', 'DOLocationID']
     numerical = ['trip_distance']
-    dicts = df[categorical + numerical].to_dict(orient='records')
+    dicts = df[categorical].to_dict(orient='records')
 
     if dv is None:
         dv = DictVectorizer(sparse=True)
@@ -52,6 +52,7 @@ def create_X(df, dv=None):
 def train_model(X_train, y_train, X_val, y_val, dv):
     with mlflow.start_run() as run:
         model = LinearRegression()
+        model.fit(X_train, y_train)
 
         y_pred = model.predict(X_val)
         rmse = root_mean_squared_error(y_val, y_pred)
@@ -63,7 +64,7 @@ def train_model(X_train, y_train, X_val, y_val, dv):
             pickle.dump(dv, f_out)
         mlflow.log_artifact("models/preprocessor.b", artifact_path="preprocessor")
 
-        mlflow.xgboost.log_model(model, artifact_path="models_mlflow")
+        mlflow.sklearn.log_model(model, artifact_path="models_mlflow",registered_model_name="linear_model")
 
         return run.info.run_id
 
