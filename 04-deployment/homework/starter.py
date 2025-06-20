@@ -66,7 +66,7 @@ def run():
     print(f'applying the model...')
     y_pred = apply_model(dicts)
 
-    output_file = f'./output/yellow_tripdata_{year:04d}-{month:02d}_predictions.parquet'
+    output_file = f'./yellow_tripdata_{year:04d}-{month:02d}_predictions.parquet'
     print(f'saving the result to {output_file}...')
     save_results(df, y_pred, output_file)
 

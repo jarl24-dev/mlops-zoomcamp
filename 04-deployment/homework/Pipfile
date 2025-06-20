@@ -4,11 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-scikit-learn = "==1.6.1"
+scikit-learn = "==1.5.0"
 flask = "*"
+pandas = "*"
+pyarrow = "*"
+fastparquet = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
-python_full_version = "3.9.12"
+python_version = "3.12"
