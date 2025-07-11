@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import sys
+import os
 import pickle
 import pandas as pd
 
@@ -13,8 +14,8 @@ def load_model():
 
 categorical = ['PULocationID', 'DOLocationID']
 
-def read_data(filename):
-    df = pd.read_parquet(filename)
+def prepare_data(df):
+    #df = pd.read_parquet(filename)
     
     df['duration'] = df.tpep_dropoff_datetime - df.tpep_pickup_datetime
     df['duration'] = df.duration.dt.total_seconds() / 60
@@ -22,14 +23,62 @@ def read_data(filename):
     df = df[(df.duration >= 1) & (df.duration <= 60)].copy()
 
     df[categorical] = df[categorical].fillna(-1).astype('int').astype('str')
-    
+     
     return df
 
+def get_input_path(year, month):
+    default_input_pattern = 'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year:04d}-{month:02d}.parquet'
+    input_pattern = os.getenv('INPUT_FILE_PATTERN', default_input_pattern)
+    return input_pattern.format(year=year, month=month)
+
+
+def get_output_path(year, month):
+    default_output_pattern = 's3://nyc-duration-prediction-alexey/taxi_type=fhv/year={year:04d}/month={month:02d}/predictions.parquet'
+    output_pattern = os.getenv('OUTPUT_FILE_PATTERN', default_output_pattern)
+    return output_pattern.format(year=year, month=month)
+
+def read_data(input_file):
+
+    endpoint = os.getenv('S3_ENDPOINT_URL', None)
+
+    if endpoint is None:
+        input_file = f'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year:04d}-{month:02d}.parquet'
+        return pd.read_parquet(input_file)
+    
+    options = {
+        'client_kwargs': {
+            'endpoint_url': endpoint
+            }
+        }
+
+    return pd.read_parquet(input_file, storage_options=options)
+
+def save_data(output_file, df_result):
+
+    endpoint = os.getenv('S3_ENDPOINT_URL', None)
+
+    if endpoint is None:
+        output_file = f'output/yellow_tripdata_{year:04d}-{month:02d}.parquet'
+        df_result.to_parquet(output_file, engine='pyarrow', index=False)
+    else: 
+        options = {
+            'client_kwargs': {
+                'endpoint_url': endpoint
+                }
+            }
+
+        df_result.to_parquet(output_file, engine='pyarrow', index=False, storage_options=options)
+
 def main(year, month):
-    input_file = f'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year:04d}-{month:02d}.parquet'
-    output_file = f'output/yellow_tripdata_{year:04d}-{month:02d}.parquet'
+    #input_file = f'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year:04d}-{month:02d}.parquet'
+    #output_file = f'output/yellow_tripdata_{year:04d}-{month:02d}.parquet'
+
+    input_file = get_input_path(year, month)
+    output_file = get_output_path(year, month)
 
     df = read_data(input_file)
+
+    df = prepare_data(df)
     df['ride_id'] = f'{year:04d}/{month:02d}_' + df.index.astype('str')
 
     dv, lr = load_model()
@@ -46,7 +95,8 @@ def main(year, month):
     df_result['predicted_duration'] = y_pred
 
 
-    df_result.to_parquet(output_file, engine='pyarrow', index=False)
+    #df_result.to_parquet(output_file, engine='pyarrow', index=False)
+    save_data(output_file, df_result)
 
 if __name__ == '__main__':
     year = int(sys.argv[1])
